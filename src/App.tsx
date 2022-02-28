@@ -1,9 +1,20 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Die from "./Die";
+import Confetti from "react-confetti";
 import "./App.css";
 
 function App() {
   const [dice, setDice] = useState(allNewDice());
+  const [tenzies, setTenzies] = useState(false);
+
+  useEffect(() => {
+    const allDiceSame = dice.every((die) => die.value === dice[0].value);
+    const allDiceHeld = dice.every((die) => die.isHeld);
+
+    if (allDiceSame && allDiceHeld) {
+      setTenzies(true);
+    }
+  }, [dice]);
 
   function allNewDice() {
     let diceArray = new Array(10).fill({ isHeld: false });
@@ -26,18 +37,24 @@ function App() {
   }
 
   function rollDice() {
-    let newDice = dice.map((die) => {
-      if (die.isHeld) {
-        return die;
-      } else {
-        return { ...die, value: Math.ceil(Math.random() * 6) };
-      }
-    });
-    setDice(newDice);
+    if (tenzies) {
+      setDice(allNewDice());
+      setTenzies(false);
+    } else {
+      let newDice = dice.map((die) => {
+        if (die.isHeld) {
+          return die;
+        } else {
+          return { ...die, value: Math.ceil(Math.random() * 6) };
+        }
+      });
+      setDice(newDice);
+    }
   }
 
   return (
     <main className="bg-[#f5f5f5] w-[320px] h-[320px] mx-auto rounded-md flex justify-center items-center mt-10 flex-col">
+      {tenzies && <Confetti />}
       <h1 className="font-bold text-2xl tracking-tight">Tenzies</h1>
       <p className="text-sm tracking-tight text-center mb-5 w-57">
         Roll until all dice are the same. Click each die to freeze it at its
@@ -58,7 +75,7 @@ function App() {
         onClick={rollDice}
         className="bg-[#5035ff] text-white w-24 h-9 rounded shadow-md mt-6 font-bold active:shadow-inner"
       >
-        Roll
+        {tenzies ? "New Game" : "Roll"}
       </button>
     </main>
   );
